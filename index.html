@@ -29,7 +29,7 @@
 
     // Post content types
     const postTypes = [
-      { value: 'educational', label: 'Educational', icon: '📚', color: '#6366f1' },
+      { value: 'education', label: 'Education', icon: '📚', color: '#6366f1' },
       { value: 'community', label: 'Community', icon: '🤝', color: '#ec4899' },
       { value: 'visual_nature', label: 'Visual/Nature', icon: '📷', color: '#14b8a6' },
       { value: 'rapid_response', label: 'Rapid Response', icon: '⚡', color: '#f97316' },
@@ -549,7 +549,7 @@
 
     function AddPostForm({ onSave, onCancel, syncing }) {
       const [title, setTitle] = useState('');
-      const [postType, setPostType] = useState('educational');
+      const [postType, setPostType] = useState('education');
       const [pic, setPic] = useState('');
       const [status, setStatus] = useState('draft');
       const [content, setContent] = useState('');
