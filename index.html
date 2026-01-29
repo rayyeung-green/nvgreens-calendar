@@ -29,7 +29,7 @@
 
     // Post content types
     const postTypes = [
-      { value: 'education', label: 'Education', icon: '📚', color: '#6366f1' },
+      { value: 'educational', label: 'Educational', icon: '📚', color: '#6366f1' },
       { value: 'community', label: 'Community', icon: '🤝', color: '#ec4899' },
       { value: 'visual_nature', label: 'Visual/Nature', icon: '📷', color: '#14b8a6' },
       { value: 'rapid_response', label: 'Rapid Response', icon: '⚡', color: '#f97316' },
@@ -549,7 +549,7 @@
 
     function AddPostForm({ onSave, onCancel, syncing }) {
       const [title, setTitle] = useState('');
-      const [postType, setPostType] = useState('education');
+      const [postType, setPostType] = useState('educational');
       const [pic, setPic] = useState('');
       const [status, setStatus] = useState('draft');
       const [content, setContent] = useState('');
@@ -750,15 +750,15 @@
       calendarSection: { flex: 1 },
       calendarGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', backgroundColor: '#fff', padding: '12px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
       calendarDayHeader: { textAlign: 'center', fontWeight: '700', color: '#1a472a', padding: '6px', borderBottom: '2px solid #d4e4d4', fontSize: '10px', textTransform: 'uppercase' },
-      emptyDay: { minHeight: '90px' },
-      day: { minHeight: '90px', border: '2px solid #e8f0e8', borderRadius: '5px', padding: '4px', cursor: 'pointer', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+      emptyDay: { minHeight: '110px' },
+      day: { minHeight: '110px', border: '2px solid #e8f0e8', borderRadius: '5px', padding: '6px', cursor: 'pointer', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
       selectedDay: { boxShadow: '0 0 0 3px #1a472a' },
       dayHeaderRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' },
       dayNumber: { fontSize: '16px', fontWeight: '600', color: '#1a472a' },
-      keyDateBadge: { fontSize: '8px', padding: '1px 3px', borderRadius: '3px' },
+      keyDateBadge: { fontSize: '10px', padding: '2px 4px', borderRadius: '3px' },
       keyDateName: { fontSize: '11px', fontWeight: '600', lineHeight: 1.2, marginBottom: '2px' },
       postsPreview: { display: 'flex', flexDirection: 'column', gap: '2px', marginTop: 'auto' },
-      postChip: { display: 'flex', alignItems: 'center', gap: '2px', padding: '2px 4px', borderRadius: '3px', border: '1px solid', fontSize: '11px',
+      postChip: { display: 'flex', alignItems: 'center', gap: '3px', padding: '3px 5px', borderRadius: '3px', border: '1px solid', fontSize: '11px', cursor: 'pointer' },
       postChipText: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
       morePostsIndicator: { fontSize: '8px', color: '#666', textAlign: 'center' },
       sidePanel: { width: '320px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', overflow: 'hidden', alignSelf: 'flex-start', position: 'sticky', top: '16px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' },
