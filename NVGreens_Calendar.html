@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>North Vancouver Greens - Content Calendar 2026</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Crimson Pro', Georgia, serif; background: #f8faf8; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // ============================================
+    // ⚠️ 重要：請將這個 URL 替換為你的 Google Apps Script Web App URL
+    // ============================================
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzikb5Ezdc6ZzirF18870AQ6jM6-aCIpjH2eNVy3b782hCHbdXsEt-T4VDGheZNiXm/exec';
+
+    // Team members for PIC selection
+    const teamMembers = ['Stephen', 'Ray', 'Niknaz'];
+
+    // Post content types
+    const postTypes = [
+      { value: 'educational', label: 'Educational', icon: '📚', color: '#6366f1' },
+      { value: 'community', label: 'Community', icon: '🤝', color: '#ec4899' },
+      { value: 'visual_nature', label: 'Visual/Nature', icon: '📷', color: '#14b8a6' },
+      { value: 'rapid_response', label: 'Rapid Response', icon: '⚡', color: '#f97316' },
+      { value: 'green_party', label: 'Green Party', icon: '💚', color: '#22c55e' },
+    ];
+
+    // Key dates / Windows
+    const keyDates2026 = {
+      1: { 4: { name: 'Ribbon Skirt Day', category: 'canada', angle: 'Indigenous identity & resilience' } },
+      2: {
+        2: { name: 'World Wetlands Day', category: 'environment', angle: 'BC wetlands, bird habitat' },
+        14: { name: 'Have a Heart Day', category: 'canada', angle: "Indigenous children's rights" },
+        16: { name: 'Louis Riel Day', category: 'canada', angle: 'Métis history' },
+        20: { name: 'World Day of Social Justice', category: 'social', angle: 'Tax fairness, inequality' },
+      },
+      3: {
+        8: { name: "International Women's Day", category: 'social', angle: 'Gender pay gap, childcare' },
+        21: { name: 'Intl Day of Forests', category: 'environment', angle: 'Old-growth forests, logging' },
+        22: { name: 'World Water Day', category: 'environment', angle: 'Water protection, Indigenous rights' },
+        28: { name: 'Earth Hour (8:30pm)', category: 'environment', angle: 'Climate action, energy' },
+      },
+      4: { 22: { name: 'EARTH DAY', category: 'environment', isKey: true, angle: 'Full campaign (series content)' } },
+      5: {
+        1: { name: "International Workers' Day", category: 'social', isKey: true, angle: "Workers' rights, minimum wage" },
+        5: { name: 'MMIWG2S Awareness Day', category: 'canada', angle: 'MMIWG awareness' },
+        20: { name: 'World Bee Day', category: 'environment', angle: 'Pollinators, pesticide ban' },
+        22: { name: 'Intl Day for Biological Diversity', category: 'environment', angle: 'Killer whales, BC biodiversity' },
+      },
+      6: {
+        5: { name: 'World Environment Day', category: 'environment', isKey: true, angle: 'Climate action' },
+        8: { name: 'World Oceans Day', category: 'environment', angle: 'Marine protection, salmon' },
+        21: { name: 'National Indigenous Peoples Day', category: 'canada', isKey: true, angle: 'Celebration & land rights' },
+      },
+      7: { 1: { name: 'Canada Day', category: 'canada', angle: 'Vision for Canada (optional)' } },
+      8: {
+        3: { name: 'BC Day', category: 'canada', angle: 'BC nature, local pride' },
+        9: { name: "Intl Day of World's Indigenous Peoples", category: 'canada', angle: 'Global Indigenous solidarity' },
+      },
+      9: {
+        7: { name: 'Labour Day', category: 'social', angle: "Workers' achievements" },
+        22: { name: 'Autumnal Equinox', category: 'canada', angle: 'Seasonal change, harvest' },
+        25: { name: 'Global Climate Strike', category: 'environment', angle: 'Youth climate action' },
+        30: { name: 'TRUTH & RECONCILIATION DAY', category: 'canada', isKey: true, angle: 'Full campaign (series content)' },
+      },
+      10: {
+        5: { name: 'World Habitat Day', category: 'social', angle: 'Housing affordability' },
+        10: { name: 'World Homeless Day', category: 'social', angle: 'Homelessness solutions' },
+        12: { name: 'Thanksgiving', category: 'canada', angle: 'Food security, local farms' },
+        17: { name: 'Intl Day for Eradication of Poverty', category: 'social', angle: 'GLI, poverty elimination' },
+      },
+      11: {
+        6: { name: 'Intl Day Preventing Env Exploitation in War', category: 'environment', angle: 'Pipeline conflicts, land defence' },
+        20: { name: 'National Housing Day', category: 'social', isKey: true, angle: 'Housing crisis, rent control' },
+      },
+      12: { 10: { name: 'Human Rights Day', category: 'social', angle: 'Year-end reflection' } },
+    };
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    const categoryColors = {
+      environment: { bg: 'rgba(34, 139, 34, 0.12)', border: '#228B22', text: '#1a6b1a', icon: '🌿' },
+      social: { bg: 'rgba(70, 130, 180, 0.12)', border: '#4682B4', text: '#2c5282', icon: '🏠' },
+      canada: { bg: 'rgba(220, 20, 60, 0.12)', border: '#DC143C', text: '#9b1c31', icon: '🍁' },
+    };
+
+    const statusOptions = [
+      { value: 'draft', label: 'Draft', color: '#f59e0b' },
+      { value: 'review', label: 'In Review', color: '#8b5cf6' },
+      { value: 'approved', label: 'Approved', color: '#22c55e' },
+      { value: 'scheduled', label: 'Scheduled', color: '#0ea5e9' },
+      { value: 'published', label: 'Published', color: '#06b6d4' },
+    ];
+
+    function ContentCalendar() {
+      const [posts, setPosts] = useState([]);
+      const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+      const [currentYear] = useState(2026);
+      const [selectedDay, setSelectedDay] = useState(null);
+      const [selectedPost, setSelectedPost] = useState(null);
+      const [showAddModal, setShowAddModal] = useState(false);
+      const [viewMode, setViewMode] = useState('calendar');
+      const [filterType, setFilterType] = useState('all');
+      const [filterPIC, setFilterPIC] = useState('all');
+      const [currentUser, setCurrentUser] = useState(() => localStorage.getItem('nvgreens-current-user') || '');
+      const [showUserModal, setShowUserModal] = useState(false);
+      const [loading, setLoading] = useState(true);
+      const [syncing, setSyncing] = useState(false);
+      const [lastSync, setLastSync] = useState(null);
+      const [error, setError] = useState(null);
+
+      useEffect(() => {
+        if (!currentUser) {
+          setShowUserModal(true);
+          setLoading(false);
+        } else {
+          fetchPosts();
+        }
+      }, [currentUser]);
+
+      const fetchPosts = async () => {
+        if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+          setError('請先設置 Google Apps Script URL');
+          setLoading(false);
+          return;
+        }
+        try {
+          setLoading(true);
+          const response = await fetch(GOOGLE_SCRIPT_URL);
+          const data = await response.json();
+          if (data.success) {
+            setPosts(data.posts.map(p => ({ ...p, month: Number(p.month), day: Number(p.day) })));
+            setLastSync(new Date());
+            setError(null);
+          } else {
+            setError(data.error || 'Failed to fetch posts');
+          }
+        } catch (err) {
+          setError('Network error: ' + err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const addPost = async (newPost) => {
+        try {
+          setSyncing(true);
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'add',
+              post: { ...newPost, month: currentMonth, day: selectedDay, editedBy: currentUser }
+            }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            setPosts(prev => [...prev, { ...data.post, month: Number(data.post.month), day: Number(data.post.day) }]);
+            setShowAddModal(false);
+            setLastSync(new Date());
+          } else {
+            alert('Error: ' + data.error);
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+        } finally {
+          setSyncing(false);
+        }
+      };
+
+      const updatePost = async (updatedPost) => {
+        try {
+          setSyncing(true);
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'update', post: { ...updatedPost, editedBy: currentUser } }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            setPosts(prev => prev.map(p => p.id === updatedPost.id ? { ...data.post, month: Number(data.post.month), day: Number(data.post.day) } : p));
+            setSelectedPost(data.post);
+            setLastSync(new Date());
+          } else {
+            alert('Error: ' + data.error);
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+        } finally {
+          setSyncing(false);
+        }
+      };
+
+      const deletePost = async (postId) => {
+        try {
+          setSyncing(true);
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'delete', id: postId }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            setPosts(prev => prev.filter(p => p.id !== postId));
+            setSelectedPost(null);
+            setLastSync(new Date());
+          } else {
+            alert('Error: ' + data.error);
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+        } finally {
+          setSyncing(false);
+        }
+      };
+
+      const handleUserSelect = (user) => {
+        setCurrentUser(user);
+        localStorage.setItem('nvgreens-current-user', user);
+        setShowUserModal(false);
+      };
+
+      const getDaysInMonth = (month, year) => new Date(year, month, 0).getDate();
+      const getFirstDayOfMonth = (month, year) => new Date(year, month - 1, 1).getDay();
+      const getKeyDate = (month, day) => keyDates2026[month]?.[day];
+      const getPostsForDay = (month, day) => posts.filter(p => p.month === month && p.day === day);
+
+      const handleDayClick = (day) => {
+        setSelectedDay(day);
+        setSelectedPost(null);
+      };
+
+      const getStats = () => {
+        const byType = {};
+        const byPIC = {};
+        postTypes.forEach(t => byType[t.value] = 0);
+        teamMembers.forEach(m => byPIC[m] = 0);
+        posts.forEach(post => {
+          if (byType[post.postType] !== undefined) byType[post.postType]++;
+          if (post.pic && byPIC[post.pic] !== undefined) byPIC[post.pic]++;
+        });
+        return { total: posts.length, byType, byPIC };
+      };
+
+      const stats = getStats();
+
+      // User Selection Modal
+      if (showUserModal) {
+        return (
+          <div style={styles.userModalOverlay}>
+            <div style={styles.userModal}>
+              <h2 style={styles.userModalTitle}>👋 Welcome!</h2>
+              <p style={styles.userModalText}>Please select your name:</p>
+              <div style={styles.userButtons}>
+                {teamMembers.map(member => (
+                  <button key={member} style={styles.userButton} onClick={() => handleUserSelect(member)}>
+                    {member}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Loading
+      if (loading) {
+        return (
+          <div style={styles.loadingContainer}>
+            <div style={{fontSize: '48px'}}>⏳</div>
+            <p>Loading calendar data...</p>
+          </div>
+        );
+      }
+
+      const showSetupInstructions = GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+      const renderCalendar = () => {
+        const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+        const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+        const days = [];
+
+        for (let i = 0; i < firstDay; i++) {
+          days.push(<div key={`empty-${i}`} style={styles.emptyDay} />);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const keyDate = getKeyDate(currentMonth, day);
+          const dayPosts = getPostsForDay(currentMonth, day).filter(p => {
+            if (filterType !== 'all' && p.postType !== filterType) return false;
+            if (filterPIC !== 'all' && p.pic !== filterPIC) return false;
+            return true;
+          });
+
+          days.push(
+            <div
+              key={day}
+              onClick={() => handleDayClick(day)}
+              style={{
+                ...styles.day,
+                ...(selectedDay === day ? styles.selectedDay : {}),
+                ...(keyDate ? { backgroundColor: categoryColors[keyDate.category]?.bg } : {}),
+              }}
+            >
+              <div style={styles.dayHeaderRow}>
+                <span style={styles.dayNumber}>{day}</span>
+                {keyDate && (
+                  <span style={{
+                    ...styles.keyDateBadge,
+                    backgroundColor: keyDate.isKey ? '#fef3c7' : categoryColors[keyDate.category]?.bg,
+                    color: keyDate.isKey ? '#92400e' : categoryColors[keyDate.category]?.text,
+                  }}>
+                    {categoryColors[keyDate.category]?.icon}{keyDate.isKey && '⭐'}
+                  </span>
+                )}
+              </div>
+              {keyDate && (
+                <div style={{...styles.keyDateName, color: categoryColors[keyDate.category]?.text}}>
+                  {keyDate.name}
+                </div>
+              )}
+              {dayPosts.length > 0 && (
+                <div style={styles.postsPreview}>
+                  {dayPosts.slice(0, 2).map(post => {
+                    const typeInfo = postTypes.find(t => t.value === post.postType);
+                    return (
+                      <div key={post.id} style={{...styles.postChip, backgroundColor: typeInfo?.color + '20', borderColor: typeInfo?.color}}
+                        onClick={(e) => { e.stopPropagation(); setSelectedDay(day); setSelectedPost(post); }}>
+                        <span>{typeInfo?.icon}</span>
+                        <span style={styles.postChipText}>{post.title?.substring(0, 10)}...</span>
+                      </div>
+                    );
+                  })}
+                  {dayPosts.length > 2 && <div style={styles.morePostsIndicator}>+{dayPosts.length - 2}</div>}
+                </div>
+              )}
+            </div>
+          );
+        }
+        return days;
+      };
+
+      return (
+        <div style={styles.container}>
+          {/* Header */}
+          <header style={styles.header}>
+            <div style={styles.logo}>
+              <span style={styles.logoIcon}>📅</span>
+              <div>
+                <h1 style={styles.title}>North Vancouver Greens</h1>
+                <p style={styles.subtitle}>Content Calendar 2026</p>
+              </div>
+            </div>
+            <div style={styles.headerRight}>
+              <div style={styles.userInfo}>
+                <span style={styles.currentUser}>👤 {currentUser}</span>
+                <button style={styles.switchUserBtn} onClick={() => setShowUserModal(true)}>Switch</button>
+                <button style={styles.refreshBtn} onClick={fetchPosts} disabled={syncing}>
+                  {syncing ? '⏳' : '🔄'} Refresh
+                </button>
+              </div>
+              {lastSync && <div style={styles.syncInfo}>Last sync: {lastSync.toLocaleTimeString()}</div>}
+            </div>
+          </header>
+
+          {/* Setup/Error Banner */}
+          {showSetupInstructions && (
+            <div style={styles.setupBanner}>
+              <strong>⚠️ Setup Required:</strong> Replace <code>GOOGLE_SCRIPT_URL</code> with your Apps Script URL.
+            </div>
+          )}
+          {error && !showSetupInstructions && (
+            <div style={styles.errorBanner}>
+              <strong>Error:</strong> {error}
+              <button style={styles.retryBtn} onClick={fetchPosts}>Retry</button>
+            </div>
+          )}
+
+          {/* Legend */}
+          <div style={styles.legendBar}>
+            {postTypes.map(type => (
+              <span key={type.value} style={styles.legendItem}>
+                <span style={{...styles.legendDot, backgroundColor: type.color}}/>{type.icon} {type.label}
+              </span>
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div style={styles.statsBar}>
+            <div style={styles.stat}>
+              <span style={styles.statNumber}>{stats.total}</span>
+              <span style={styles.statLabel}>Total</span>
+            </div>
+            {postTypes.map(type => (
+              <div key={type.value} style={styles.stat}>
+                <span style={{...styles.statNumber, color: type.color}}>{stats.byType[type.value]}</span>
+                <span style={styles.statLabel}>{type.icon}</span>
+              </div>
+            ))}
+            <div style={styles.statDivider} />
+            {teamMembers.map(member => (
+              <div key={member} style={styles.stat}>
+                <span style={styles.statNumber}>{stats.byPIC[member]}</span>
+                <span style={styles.statLabel}>{member}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Controls */}
+          <div style={styles.controls}>
+            <div style={styles.navButtons}>
+              <button style={styles.navBtn} onClick={() => setCurrentMonth(m => m > 1 ? m - 1 : 12)}>← Prev</button>
+              <h2 style={styles.monthTitle}>{monthNames[currentMonth - 1]} 2026</h2>
+              <button style={styles.navBtn} onClick={() => setCurrentMonth(m => m < 12 ? m + 1 : 1)}>Next →</button>
+            </div>
+            <div style={styles.filters}>
+              <select style={styles.select} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                <option value="all">All Types</option>
+                {postTypes.map(type => (
+                  <option key={type.value} value={type.value}>{type.icon} {type.label}</option>
+                ))}
+              </select>
+              <select style={styles.select} value={filterPIC} onChange={(e) => setFilterPIC(e.target.value)}>
+                <option value="all">All Members</option>
+                {teamMembers.map(member => (
+                  <option key={member} value={member}>{member}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div style={styles.mainContent}>
+            <div style={styles.calendarSection}>
+              <div style={styles.calendarGrid}>
+                {dayNames.map(day => (
+                  <div key={day} style={styles.calendarDayHeader}>{day}</div>
+                ))}
+                {renderCalendar()}
+              </div>
+            </div>
+
+            {/* Side Panel */}
+            {selectedDay && (
+              <div style={styles.sidePanel}>
+                <div style={styles.panelHeader}>
+                  <div>
+                    <h3 style={styles.panelTitle}>{monthNames[currentMonth - 1]} {selectedDay}, 2026</h3>
+                    {getKeyDate(currentMonth, selectedDay) && (
+                      <p style={styles.panelKeyDate}>
+                        {categoryColors[getKeyDate(currentMonth, selectedDay).category]?.icon} {getKeyDate(currentMonth, selectedDay).name}
+                      </p>
+                    )}
+                  </div>
+                  <button style={styles.closeBtn} onClick={() => { setSelectedDay(null); setSelectedPost(null); }}>×</button>
+                </div>
+
+                {getKeyDate(currentMonth, selectedDay) && !selectedPost && (
+                  <div style={{...styles.keyDateInfo, backgroundColor: categoryColors[getKeyDate(currentMonth, selectedDay).category]?.bg}}>
+                    <p style={styles.keyDateAngle}><strong>Angle:</strong> {getKeyDate(currentMonth, selectedDay).angle}</p>
+                  </div>
+                )}
+
+                {!selectedPost ? (
+                  <div style={styles.panelContent}>
+                    <div style={styles.sectionHeader}>
+                      <h4 style={styles.sectionTitle}>📝 Posts</h4>
+                      <button style={styles.addBtn} onClick={() => setShowAddModal(true)}>+ Add</button>
+                    </div>
+                    {getPostsForDay(currentMonth, selectedDay).length === 0 ? (
+                      <p style={styles.noPosts}>No posts yet</p>
+                    ) : (
+                      <div style={styles.postsList}>
+                        {getPostsForDay(currentMonth, selectedDay).map(post => {
+                          const typeInfo = postTypes.find(t => t.value === post.postType);
+                          return (
+                            <div key={post.id} style={{...styles.postCard, borderLeftColor: typeInfo?.color}} onClick={() => setSelectedPost(post)}>
+                              <div style={styles.postCardHeader}>
+                                <span style={{...styles.typeIcon, backgroundColor: typeInfo?.color}}>{typeInfo?.icon}</span>
+                                <span style={styles.postCardTitle}>{post.title}</span>
+                              </div>
+                              <div style={styles.postCardMeta}>
+                                <span style={{...styles.statusBadgeSmall, backgroundColor: statusOptions.find(s => s.value === post.status)?.color}}>
+                                  {statusOptions.find(s => s.value === post.status)?.label}
+                                </span>
+                                {post.pic && <span style={styles.picBadgeSmall}>👤 {post.pic}</span>}
+                              </div>
+                              {post.lastEditedBy && <div style={styles.cardLastEdited}>✏️ {post.lastEditedBy}</div>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <PostDetail
+                    post={selectedPost}
+                    onUpdate={updatePost}
+                    onDelete={deletePost}
+                    onBack={() => setSelectedPost(null)}
+                    keyDate={getKeyDate(currentMonth, selectedDay)}
+                    syncing={syncing}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Add Post Modal */}
+          {showAddModal && (
+            <div style={styles.modalOverlay}>
+              <div style={styles.modal}>
+                <div style={styles.modalHeader}>
+                  <h3 style={styles.modalTitle}>Add New Post</h3>
+                  <button style={styles.modalClose} onClick={() => setShowAddModal(false)}>×</button>
+                </div>
+                <p style={styles.modalSubtitle}>
+                  {monthNames[currentMonth - 1]} {selectedDay}, 2026
+                  {getKeyDate(currentMonth, selectedDay) && <span style={styles.modalKeyDate}> • {getKeyDate(currentMonth, selectedDay).name}</span>}
+                </p>
+                <AddPostForm onSave={addPost} onCancel={() => setShowAddModal(false)} syncing={syncing} />
+              </div>
+            </div>
+          )}
+
+          {/* Syncing Overlay */}
+          {syncing && (
+            <div style={styles.syncingOverlay}>
+              <div style={styles.syncingBox}>⏳ Syncing...</div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer style={styles.footer}>
+            <p>North Vancouver Greens • Collaborative Content Calendar • Powered by Google Sheets</p>
+          </footer>
+        </div>
+      );
+    }
+
+    function AddPostForm({ onSave, onCancel, syncing }) {
+      const [title, setTitle] = useState('');
+      const [postType, setPostType] = useState('educational');
+      const [pic, setPic] = useState('');
+      const [status, setStatus] = useState('draft');
+      const [content, setContent] = useState('');
+      const [notes, setNotes] = useState('');
+
+      const handleSubmit = () => {
+        if (!title.trim()) return alert('Please enter a title');
+        onSave({ title, postType, pic, status, content, notes });
+      };
+
+      return (
+        <div style={styles.formContainer}>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Title *</label>
+            <input style={styles.input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Post title" />
+          </div>
+          <div style={styles.formRow}>
+            <div style={styles.formGroupHalf}>
+              <label style={styles.label}>Type</label>
+              <select style={styles.input} value={postType} onChange={(e) => setPostType(e.target.value)}>
+                {postTypes.map(type => <option key={type.value} value={type.value}>{type.icon} {type.label}</option>)}
+              </select>
+            </div>
+            <div style={styles.formGroupHalf}>
+              <label style={styles.label}>PIC</label>
+              <select style={styles.input} value={pic} onChange={(e) => setPic(e.target.value)}>
+                <option value="">— Select —</option>
+                {teamMembers.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Status</label>
+            <select style={styles.input} value={status} onChange={(e) => setStatus(e.target.value)}>
+              {statusOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Content</label>
+            <textarea style={styles.textarea} value={content} onChange={(e) => setContent(e.target.value)} rows={4} placeholder="Post content..." />
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Notes</label>
+            <textarea style={styles.textarea} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Internal notes..." />
+          </div>
+          <div style={styles.buttonGroup}>
+            <button style={styles.saveBtn} onClick={handleSubmit} disabled={syncing}>{syncing ? '⏳' : '➕'} Add</button>
+            <button style={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+
+    function PostDetail({ post, onUpdate, onDelete, onBack, keyDate, syncing }) {
+      const [editMode, setEditMode] = useState(false);
+      const [editData, setEditData] = useState({ ...post });
+      const [confirmDelete, setConfirmDelete] = useState(false);
+      const typeInfo = postTypes.find(t => t.value === post.postType);
+
+      const handleSave = () => { onUpdate(editData); setEditMode(false); };
+      const handleDelete = () => { if (confirmDelete) { onDelete(post.id); } else { setConfirmDelete(true); } };
+
+      if (editMode) {
+        return (
+          <div style={styles.panelContent}>
+            <button style={styles.backBtn} onClick={() => setEditMode(false)}>← Cancel</button>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Title</label>
+              <input style={styles.input} value={editData.title} onChange={(e) => setEditData({...editData, title: e.target.value})} />
+            </div>
+            <div style={styles.formRow}>
+              <div style={styles.formGroupHalf}>
+                <label style={styles.label}>Type</label>
+                <select style={styles.input} value={editData.postType} onChange={(e) => setEditData({...editData, postType: e.target.value})}>
+                  {postTypes.map(type => <option key={type.value} value={type.value}>{type.icon} {type.label}</option>)}
+                </select>
+              </div>
+              <div style={styles.formGroupHalf}>
+                <label style={styles.label}>PIC</label>
+                <select style={styles.input} value={editData.pic || ''} onChange={(e) => setEditData({...editData, pic: e.target.value})}>
+                  <option value="">— Select —</option>
+                  {teamMembers.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Status</label>
+              <select style={styles.input} value={editData.status} onChange={(e) => setEditData({...editData, status: e.target.value})}>
+                {statusOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Content</label>
+              <textarea style={styles.textarea} value={editData.content || ''} onChange={(e) => setEditData({...editData, content: e.target.value})} rows={5} />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Notes</label>
+              <textarea style={styles.textarea} value={editData.notes || ''} onChange={(e) => setEditData({...editData, notes: e.target.value})} rows={3} />
+            </div>
+            <div style={styles.buttonGroup}>
+              <button style={styles.saveBtn} onClick={handleSave} disabled={syncing}>{syncing ? '⏳' : '💾'} Save</button>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={styles.panelContent}>
+          <button style={styles.backBtn} onClick={onBack}>← Back</button>
+          <div style={{...styles.postTypeHeader, backgroundColor: typeInfo?.color + '15', borderColor: typeInfo?.color}}>
+            <span style={{...styles.typeIconLarge, backgroundColor: typeInfo?.color}}>{typeInfo?.icon}</span>
+            <div>
+              <span style={styles.postTypeLabel}>{typeInfo?.label}</span>
+              <h4 style={styles.postDetailTitle}>{post.title}</h4>
+            </div>
+          </div>
+          {keyDate && (
+            <div style={styles.keyDateReference}>
+              📅 <strong>{keyDate.name}</strong><br/><span style={{fontSize:'11px',color:'#666'}}>Angle: {keyDate.angle}</span>
+            </div>
+          )}
+          <div style={styles.detailGrid}>
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Status</span>
+              <span style={{...styles.statusBadge, backgroundColor: statusOptions.find(s => s.value === post.status)?.color}}>
+                {statusOptions.find(s => s.value === post.status)?.label}
+              </span>
+            </div>
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>PIC</span>
+              <span style={styles.detailValue}>{post.pic || 'Not assigned'}</span>
+            </div>
+          </div>
+          {post.lastEditedBy && (
+            <div style={styles.lastEditedSection}>
+              <span style={styles.detailLabel}>Last Edited</span>
+              <p style={styles.lastEditedText}>✏️ {post.lastEditedBy}</p>
+            </div>
+          )}
+          {post.content && (
+            <div style={styles.contentSection}>
+              <span style={styles.detailLabel}>Content</span>
+              <p style={styles.contentText}>{post.content}</p>
+            </div>
+          )}
+          {post.notes && (
+            <div style={styles.notesSection}>
+              <span style={styles.detailLabel}>Notes</span>
+              <p style={styles.notesText}>{post.notes}</p>
+            </div>
+          )}
+          <div style={styles.buttonGroup}>
+            <button style={styles.editBtn} onClick={() => setEditMode(true)}>✏️ Edit</button>
+            {confirmDelete ? (
+              <div style={styles.confirmDeleteGroup}>
+                <button style={styles.confirmDeleteBtn} onClick={handleDelete}>Yes, Delete</button>
+                <button style={styles.cancelDeleteBtn} onClick={() => setConfirmDelete(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button style={styles.deleteBtn} onClick={handleDelete}>🗑️ Delete</button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const styles = {
+      container: { fontFamily: "'Crimson Pro', Georgia, serif", backgroundColor: '#f8faf8', minHeight: '100vh', color: '#1a2e1a' },
+      header: { background: 'linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%)', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' },
+      logo: { display: 'flex', alignItems: 'center', gap: '12px' },
+      logoIcon: { fontSize: '36px' },
+      title: { margin: 0, fontSize: '22px', fontWeight: '600', color: '#fff' },
+      subtitle: { margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.85)', fontStyle: 'italic' },
+      headerRight: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' },
+      userInfo: { display: 'flex', alignItems: 'center', gap: '8px' },
+      currentUser: { color: '#fff', fontWeight: '600', fontSize: '13px' },
+      switchUserBtn: { padding: '4px 8px', backgroundColor: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' },
+      refreshBtn: { padding: '4px 8px', backgroundColor: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' },
+      syncInfo: { color: 'rgba(255,255,255,0.7)', fontSize: '10px' },
+      setupBanner: { backgroundColor: '#fef3c7', color: '#92400e', padding: '10px 24px', fontSize: '13px' },
+      errorBanner: { backgroundColor: '#fee2e2', color: '#991b1b', padding: '10px 24px', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+      retryBtn: { padding: '4px 10px', backgroundColor: '#991b1b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' },
+      legendBar: { display: 'flex', justifyContent: 'center', gap: '14px', padding: '8px 24px', backgroundColor: '#fff', borderBottom: '1px solid #e0e8e0', flexWrap: 'wrap' },
+      legendItem: { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#444' },
+      legendDot: { width: '8px', height: '8px', borderRadius: '50%' },
+      statsBar: { display: 'flex', justifyContent: 'center', gap: '16px', padding: '8px 24px', backgroundColor: '#fff', borderBottom: '1px solid #e0e8e0', flexWrap: 'wrap' },
+      stat: { display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '40px' },
+      statNumber: { fontSize: '16px', fontWeight: '700', color: '#1a472a' },
+      statLabel: { fontSize: '9px', color: '#666', textTransform: 'uppercase' },
+      statDivider: { width: '1px', height: '24px', backgroundColor: '#e0e8e0' },
+      controls: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 24px', backgroundColor: '#fff', borderBottom: '2px solid #d4e4d4', flexWrap: 'wrap', gap: '10px' },
+      navButtons: { display: 'flex', alignItems: 'center', gap: '10px' },
+      navBtn: { padding: '6px 12px', border: '2px solid #1a472a', borderRadius: '5px', backgroundColor: 'transparent', color: '#1a472a', cursor: 'pointer', fontSize: '11px', fontWeight: '600' },
+      monthTitle: { margin: 0, fontSize: '18px', fontWeight: '600', color: '#1a472a', minWidth: '140px', textAlign: 'center' },
+      filters: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
+      select: { padding: '6px 8px', border: '2px solid #d4e4d4', borderRadius: '5px', backgroundColor: '#fff', fontSize: '11px', cursor: 'pointer' },
+      mainContent: { display: 'flex', gap: '16px', padding: '16px 24px', minHeight: 'calc(100vh - 240px)' },
+      calendarSection: { flex: 1 },
+      calendarGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', backgroundColor: '#fff', padding: '12px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+      calendarDayHeader: { textAlign: 'center', fontWeight: '700', color: '#1a472a', padding: '6px', borderBottom: '2px solid #d4e4d4', fontSize: '10px', textTransform: 'uppercase' },
+      emptyDay: { minHeight: '90px' },
+      day: { minHeight: '90px', border: '2px solid #e8f0e8', borderRadius: '5px', padding: '4px', cursor: 'pointer', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+      selectedDay: { boxShadow: '0 0 0 3px #1a472a' },
+      dayHeaderRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' },
+      dayNumber: { fontSize: '12px', fontWeight: '600', color: '#1a472a' },
+      keyDateBadge: { fontSize: '8px', padding: '1px 3px', borderRadius: '3px' },
+      keyDateName: { fontSize: '8px', fontWeight: '600', lineHeight: 1.2, marginBottom: '2px' },
+      postsPreview: { display: 'flex', flexDirection: 'column', gap: '2px', marginTop: 'auto' },
+      postChip: { display: 'flex', alignItems: 'center', gap: '2px', padding: '2px 4px', borderRadius: '3px', border: '1px solid', fontSize: '8px', cursor: 'pointer' },
+      postChipText: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+      morePostsIndicator: { fontSize: '8px', color: '#666', textAlign: 'center' },
+      sidePanel: { width: '320px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', overflow: 'hidden', alignSelf: 'flex-start', position: 'sticky', top: '16px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' },
+      panelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 16px', backgroundColor: '#1a472a', color: '#fff' },
+      panelTitle: { margin: 0, fontSize: '14px', fontWeight: '600' },
+      panelKeyDate: { margin: '2px 0 0', fontSize: '11px', opacity: 0.9 },
+      closeBtn: { background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer', lineHeight: 1 },
+      keyDateInfo: { margin: '12px', padding: '8px', borderRadius: '5px' },
+      keyDateAngle: { margin: 0, fontSize: '11px', color: '#1a2e1a' },
+      panelContent: { padding: '12px 16px' },
+      sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
+      sectionTitle: { margin: 0, fontSize: '12px', fontWeight: '600', color: '#1a472a' },
+      addBtn: { padding: '4px 8px', backgroundColor: '#1a472a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: '600' },
+      noPosts: { color: '#666', fontSize: '11px', fontStyle: 'italic' },
+      postsList: { display: 'flex', flexDirection: 'column', gap: '6px' },
+      postCard: { padding: '8px', backgroundColor: '#f8faf8', borderRadius: '5px', borderLeft: '3px solid', cursor: 'pointer' },
+      postCardHeader: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' },
+      typeIcon: { width: '18px', height: '18px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff' },
+      postCardTitle: { fontSize: '11px', fontWeight: '600', color: '#1a2e1a' },
+      postCardMeta: { display: 'flex', gap: '6px', alignItems: 'center' },
+      statusBadge: { display: 'inline-block', color: '#fff', padding: '2px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: '600' },
+      statusBadgeSmall: { display: 'inline-block', color: '#fff', padding: '1px 5px', borderRadius: '6px', fontSize: '8px', fontWeight: '600' },
+      picBadgeSmall: { fontSize: '9px', color: '#666' },
+      cardLastEdited: { fontSize: '8px', color: '#888', marginTop: '3px', fontStyle: 'italic' },
+      backBtn: { background: 'none', border: 'none', color: '#1a472a', fontSize: '11px', cursor: 'pointer', padding: '0 0 8px', fontWeight: '500' },
+      postTypeHeader: { display: 'flex', gap: '10px', padding: '10px', borderRadius: '5px', border: '2px solid', marginBottom: '12px' },
+      typeIconLarge: { width: '32px', height: '32px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#fff' },
+      postTypeLabel: { fontSize: '9px', textTransform: 'uppercase', color: '#666' },
+      postDetailTitle: { margin: '2px 0 0', fontSize: '14px', fontWeight: '600', color: '#1a2e1a' },
+      keyDateReference: { padding: '8px', backgroundColor: '#fef3c7', borderRadius: '5px', fontSize: '10px', color: '#92400e', marginBottom: '12px' },
+      detailGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' },
+      detailItem: { display: 'flex', flexDirection: 'column', gap: '2px' },
+      detailLabel: { fontSize: '9px', textTransform: 'uppercase', color: '#666', fontWeight: '600' },
+      detailValue: { fontSize: '11px', color: '#1a2e1a', fontWeight: '500' },
+      lastEditedSection: { marginBottom: '12px', padding: '8px', backgroundColor: '#f0f9ff', borderRadius: '5px', borderLeft: '3px solid #0ea5e9' },
+      lastEditedText: { margin: '3px 0 0', fontSize: '10px', color: '#0369a1' },
+      contentSection: { marginBottom: '12px', padding: '8px', backgroundColor: '#f8faf8', borderRadius: '5px' },
+      contentText: { margin: '3px 0 0', fontSize: '11px', lineHeight: 1.4, color: '#1a2e1a', whiteSpace: 'pre-wrap' },
+      notesSection: { marginBottom: '12px', padding: '8px', backgroundColor: '#fef9e7', borderRadius: '5px', borderLeft: '3px solid #f59e0b' },
+      notesText: { margin: '3px 0 0', fontSize: '10px', lineHeight: 1.3, color: '#666', whiteSpace: 'pre-wrap', fontStyle: 'italic' },
+      buttonGroup: { display: 'flex', gap: '6px', marginTop: '12px' },
+      editBtn: { flex: 1, padding: '8px 12px', backgroundColor: '#1a472a', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' },
+      deleteBtn: { padding: '8px 12px', backgroundColor: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' },
+      confirmDeleteGroup: { display: 'flex', gap: '4px' },
+      confirmDeleteBtn: { padding: '8px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '10px', fontWeight: '600' },
+      cancelDeleteBtn: { padding: '8px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '10px', fontWeight: '600' },
+      saveBtn: { flex: 1, padding: '8px 12px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' },
+      cancelBtn: { padding: '8px 12px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' },
+      modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+      modal: { backgroundColor: '#fff', borderRadius: '10px', width: '90%', maxWidth: '420px', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' },
+      modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0' },
+      modalTitle: { margin: 0, fontSize: '16px', fontWeight: '600', color: '#1a472a' },
+      modalClose: { background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#666' },
+      modalSubtitle: { margin: '4px 20px 0', fontSize: '12px', color: '#666' },
+      modalKeyDate: { color: '#1a472a', fontWeight: '500' },
+      formContainer: { padding: '16px 20px 20px' },
+      formGroup: { marginBottom: '10px' },
+      formRow: { display: 'flex', gap: '8px', marginBottom: '10px' },
+      formGroupHalf: { flex: 1 },
+      label: { display: 'block', fontSize: '10px', fontWeight: '600', color: '#1a472a', marginBottom: '3px', textTransform: 'uppercase' },
+      input: { width: '100%', padding: '8px', border: '2px solid #d4e4d4', borderRadius: '5px', fontSize: '12px', boxSizing: 'border-box' },
+      textarea: { width: '100%', padding: '8px', border: '2px solid #d4e4d4', borderRadius: '5px', fontSize: '12px', resize: 'vertical', boxSizing: 'border-box' },
+      userModalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26, 71, 42, 0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 },
+      userModal: { backgroundColor: '#fff', borderRadius: '14px', padding: '36px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
+      userModalTitle: { margin: '0 0 8px', fontSize: '26px', color: '#1a472a' },
+      userModalText: { margin: '0 0 20px', color: '#666', fontSize: '14px' },
+      userButtons: { display: 'flex', gap: '10px', justifyContent: 'center' },
+      userButton: { padding: '12px 24px', backgroundColor: '#1a472a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: '600' },
+      loadingContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f8faf8' },
+      syncingOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 },
+      syncingBox: { backgroundColor: '#fff', padding: '16px 28px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', color: '#1a472a', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' },
+      footer: { textAlign: 'center', padding: '12px', color: '#666', fontSize: '11px', borderTop: '1px solid #e0e8e0', backgroundColor: '#fff' },
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<ContentCalendar />);
+  </script>
+</body>
+</html>
